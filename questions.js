@@ -431,6 +431,7 @@ const geography = {
     ]
 };
 
+
 /* =========================================
    BUILD THE DATABASE
 ========================================= */
@@ -458,18 +459,107 @@ for (const subject of Object.keys(subjectBanks)) {
 
             const levelKey = `level${level}`;
 
-            // Level 1 contains the first question.
-            // Level 2 contains the first two, etc.
+            // Give each level its own copy of the questions
+            // from the correct year.
             questions[subject][yearKey][levelKey] =
-                yearBank.slice(0, level).map((question, index) => ({
+                yearBank.map(question => ({
                     ...question,
+                    options: [...question.options],
                     year: year,
-                    level: index + 1
+                    level: level
                 }));
-
         }
     }
 }
+
+/* =========================================
+   ADD CUSTOM QUESTIONS
+========================================= */
+
+function addQuestion(
+    subject,
+    year,
+    level,
+    question,
+    options,
+    answer,
+    explanation,
+    topic
+) {
+
+    const yearKey = `year${year}`;
+    const levelKey = `level${level}`;
+
+    if (
+        !questions[subject]?.[yearKey]?.[levelKey]
+    ) {
+        console.error("Invalid subject, year or level.");
+        return false;
+    }
+
+    if (
+        typeof question !== "string" ||
+        !question.trim() ||
+        !Array.isArray(options) ||
+        options.length < 2 ||
+        !options.every(option => typeof option === "string") ||
+        !Number.isInteger(answer) ||
+        answer < 0 ||
+        answer >= options.length
+    ) {
+        console.error("Invalid question details.");
+        return false;
+    }
+
+    questions[subject][yearKey][levelKey].push({
+        q: question,
+        options: [...options],
+        answer: answer,
+        explanation: explanation || "",
+        topic: topic || "General Knowledge",
+        year: Number(year),
+        level: Number(level)
+    });
+
+    return true;
+}
+
+/* =========================================
+   DATABASE CHECK
+========================================= */
+
+console.log("School Quiz Learning Hub database loaded!");
+
+console.log("Subjects:", Object.keys(questions));
+console.log("Years: 1–11");
+console.log("Levels: 1–5");
+
+console.log(
+    "Year 1 Maths Level 1:",
+    questions.math.year1.level1
+);
+
+console.log(
+    "Year 1 Maths Level 5:",
+    questions.math.year1.level5
+);
+
+console.log(
+    "Year 11 Maths Level 5:",
+    questions.math.year11.level5
+);
+
+console.log(
+    "Year 1 Maths questions:",
+    questions.math.year1.level1.length
+);
+
+console.log(
+    "Year 11 Maths questions:",
+    questions.math.year11.level5.length
+);
+
+console.log("All 275 subject/year/level combinations created.");
 
 /* =========================================
    ADD CUSTOM QUESTIONS
