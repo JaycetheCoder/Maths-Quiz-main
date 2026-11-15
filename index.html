@@ -6,13 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>School Quiz Learning Hub | Learn, Practise & Improve</title>
-
     <meta name="description" content="Practise Maths, Science, English, History and Geography with interactive quizzes for Years 1–11 and five difficulty levels.">
-
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#6554d9">
 
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
@@ -27,7 +25,7 @@
     <div class="decoration decoration-seven">🧪</div>
     <div class="decoration decoration-eight">📐</div>
 
-    <!-- WEBSITE NAVIGATION -->
+    <!-- HEADER -->
     <header class="site-header">
         <a class="brand" href="index.html">
             <span class="brand-icon">🎓</span>
@@ -63,11 +61,11 @@
                 your school skills with interactive quizzes.
             </p>
 
-            <div style="width:100%; display:flex; justify-content:center; align-items:center;">
-    <button id="enterBtn" onclick="enterbtn()">
-        Start Learning
-    </button>
-</div>
+            <div class="landing-button-wrapper">
+                <button id="enterBtn" type="button">
+                    Start Learning
+                </button>
+            </div>
 
             <div class="landing-features">
                 <span>📚 5 Subjects</span>
@@ -76,7 +74,6 @@
             </div>
 
         </div>
-
     </section>
 
     <!-- HOME / SELECTION PAGE -->
@@ -153,6 +150,21 @@
             Choose your challenge and give it your best!
         </p>
 
+        <!-- ACHIEVEMENTS -->
+        <section class="achievements-panel" aria-labelledby="achievementsTitle">
+
+            <div class="achievements-heading">
+                <span class="eyebrow">YOUR PROGRESS</span>
+                <h2 id="achievementsTitle">🏅 Your Achievements</h2>
+                <p id="achievementSummary">
+                    0 of 5 badges unlocked
+                </p>
+            </div>
+
+            <div id="achievementGrid" class="achievement-grid"></div>
+
+        </section>
+
     </main>
 
     <!-- QUIZ PAGE -->
@@ -180,7 +192,8 @@
             role="progressbar"
             aria-label="Quiz progress"
             aria-valuemin="0"
-            aria-valuemax="100">
+            aria-valuemax="100"
+            aria-valuenow="0">
 
             <div id="progressBar" class="progress-fill"></div>
         </div>
@@ -194,6 +207,9 @@
             <div id="options"></div>
 
             <p id="feedback" aria-live="polite"></p>
+
+            <div id="explanationBox" class="explanation-box"
+                style="display: none;"></div>
 
         </section>
 
@@ -230,6 +246,12 @@
 
         <p id="resultDescription"></p>
 
+        <div id="newAchievementNotice"
+            class="new-achievement-notice"
+            style="display: none;"
+            aria-live="polite">
+        </div>
+
         <button id="restartBtn" class="btn" type="button">
             🔄 Try Again
         </button>
@@ -243,7 +265,9 @@
     <!-- FOOTER -->
     <footer class="site-footer">
 
-        <div class="footer-brand">🎓 School Quiz Learning Hub</div>
+        <div class="footer-brand">
+            🎓 School Quiz Learning Hub
+        </div>
 
         <p>
             Making learning fun through interactive educational quizzes.
@@ -262,7 +286,7 @@
 
     </footer>
 
-    <!-- JAVASCRIPT -->
+    <!-- LOAD QUESTION DATABASE FIRST -->
     <script src="questions.js"></script>
     <script src="script.js"></script>
 
