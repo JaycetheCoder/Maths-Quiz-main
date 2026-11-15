@@ -1,7 +1,6 @@
-
 /* =========================================
    SCHOOL QUIZ LEARNING HUB
-   COMPLETE QUIZ + 7 ACHIEVEMENT RANKS
+   QUIZ + 7 ACHIEVEMENTS + DAILY STREAKS
 ========================================= */
 
 
@@ -44,6 +43,15 @@ const achievementSummary = document.querySelector("#achievementSummary");
 const achievementProgressBar = document.querySelector("#achievementProgressBar");
 const achievementProgressText = document.querySelector("#achievementProgressText");
 const newAchievementNotice = document.querySelector("#newAchievementNotice");
+
+
+/* STREAK ELEMENTS */
+
+const currentStreakElement = document.querySelector("#currentStreak");
+const longestStreakElement = document.querySelector("#longestStreak");
+const streakProgressBar = document.querySelector("#streakProgressBar");
+const streakProgressText = document.querySelector("#streakProgressText");
+const streakReward = document.querySelector("#streakReward");
 
 
 /* =========================================
@@ -128,7 +136,7 @@ const achievements = [
 
 
 /* =========================================
-   4. SAVE AND LOAD ACHIEVEMENTS
+   4. SAVE AND LOAD DATA
 ========================================= */
 
 const STORAGE_KEY = "learningHubAchievementsV2";
@@ -137,23 +145,28 @@ function loadAchievementData() {
     try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
 
-        if (
-            saved &&
-            typeof saved.completedQuizzes === "number" &&
-            Array.isArray(saved.unlocked)
-        ) {
+        if (saved && typeof saved.completedQuizzes === "number") {
             return {
                 completedQuizzes: saved.completedQuizzes,
-                unlocked: saved.unlocked
+                unlocked: Array.isArray(saved.unlocked)
+                    ? saved.unlocked
+                    : [],
+                currentStreak: Number(saved.currentStreak) || 0,
+                longestStreak: Number(saved.longestStreak) || 0,
+                lastQuizDate: saved.lastQuizDate || null
             };
         }
+
     } catch (error) {
         console.warn("Could not load achievement data:", error);
     }
 
     return {
         completedQuizzes: 0,
-        unlocked: []
+        unlocked: [],
+        currentStreak: 0,
+        longestStreak: 0,
+        lastQuizDate: null
     };
 }
 
@@ -161,7 +174,10 @@ let achievementData = loadAchievementData();
 
 function saveAchievementData() {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(achievementData));
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(achievementData)
+        );
     } catch (error) {
         console.warn("Could not save achievement data:", error);
     }
@@ -169,17 +185,134 @@ function saveAchievementData() {
 
 
 /* =========================================
-   5. RENDER ACHIEVEMENTS
+   5. DAILY STREAK SYSTEM
+========================================= */
+
+function getLocalDate() {
+    const date = new Date();
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+function getYesterday() {
+    const date = new Date();
+
+    date.setDate(date.getDate() - 1);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+function getDisplayedStreak() {
+    const today = getLocalDate();
+    const yesterday = getYesterday();
+
+    if (
+        achievementData.lastQuizDate === today ||
+        achievementData.lastQuizDate === yesterday
+    ) {
+        return achievementData.currentStreak;
+    }
+
+    return 0;
+}
+
+function updateStreak() {
+    const today = getLocalDate();
+    const yesterday = getYesterday();
+
+    // Do not increase the streak twice on the same day.
+    if (achievementData.lastQuizDate === today) {
+        return;
+    }
+
+    // Continue yesterday's streak, otherwise start a new one.
+    if (achievementData.lastQuizDate === yesterday) {
+        achievementData.currentStreak++;
+    } else {
+        achievementData.currentStreak = 1;
+    }
+
+    achievementData.lastQuizDate = today;
+
+    achievementData.longestStreak = Math.max(
+        achievementData.longestStreak,
+        achievementData.currentStreak
+    );
+
+    saveAchievementData();
+}
+
+function renderStreak() {
+    if (!currentStreakElement) return;
+
+    const current = getDisplayedStreak();
+    const longest = achievementData.longestStreak;
+
+    currentStreakElement.textContent = `${current} 🔥`;
+
+    if (longestStreakElement) {
+        longestStreakElement.textContent = `${longest} 🏆`;
+    }
+
+    const progress = Math.min((current / 7) * 100, 100);
+
+    if (streakProgressBar) {
+        streakProgressBar.style.width = `${progress}%`;
+    }
+
+    if (current >= 7) {
+        if (streakProgressText) {
+            streakProgressText.textContent =
+                "Amazing! You've reached a 7-day streak!";
+        }
+
+        if (streakReward) {
+            streakReward.textContent =
+                "🏅 7-DAY STREAK REWARD UNLOCKED!";
+        }
+
+    } else {
+        if (streakProgressText) {
+            streakProgressText.textContent =
+                `${current}/7 days completed towards your 7-day reward.`;
+        }
+
+        if (streakReward) {
+            streakReward.textContent =
+                "🔒 7-day streak reward";
+        }
+    }
+}
+
+
+/* =========================================
+   6. RENDER ACHIEVEMENTS
 ========================================= */
 
 function renderAchievements() {
-    if (!achievementGrid) return;
+    if (
+        !achievementGrid ||
+        !achievementSummary ||
+        !achievementProgressBar ||
+        !achievementProgressText
+    ) {
+        return;
+    }
 
     achievementGrid.innerHTML = "";
 
     const unlockedCount = achievementData.unlocked.length;
 
-    achievementSummary.textContent = `${unlockedCount} / ${achievements.length}`;
+    achievementSummary.textContent =
+        `${unlockedCount} / ${achievements.length}`;
 
     achievementProgressBar.style.width =
         `${(unlockedCount / achievements.length) * 100}%`;
@@ -188,19 +321,25 @@ function renderAchievements() {
         `${unlockedCount} of ${achievements.length} ranks unlocked`;
 
     achievements.forEach(achievement => {
-        const unlocked = achievementData.unlocked.includes(achievement.id);
+        const unlocked =
+            achievementData.unlocked.includes(achievement.id);
 
         const card = document.createElement("div");
 
-        card.className = `achievement-card ${unlocked ? "unlocked" : "locked"}`;
+        card.className =
+            `achievement-card ${unlocked ? "unlocked" : "locked"}`;
 
         if (newlyUnlocked.includes(achievement.id)) {
             card.classList.add("newly-unlocked");
         }
 
         const medal = document.createElement("div");
-        medal.className = `badge-medal ${achievement.className}`;
-        medal.textContent = unlocked ? achievement.icon : "🔒";
+
+        medal.className =
+            `badge-medal ${achievement.className}`;
+
+        medal.textContent =
+            unlocked ? achievement.icon : "🔒";
 
         const title = document.createElement("h3");
         title.textContent = achievement.name;
@@ -209,17 +348,21 @@ function renderAchievements() {
         description.textContent = achievement.description;
 
         const status = document.createElement("span");
+
         status.className = "achievement-status";
-        status.textContent = unlocked ? "Unlocked ✓" : "Locked";
+
+        status.textContent =
+            unlocked ? "Unlocked ✓" : "Locked";
 
         card.append(medal, title, description, status);
+
         achievementGrid.appendChild(card);
     });
 }
 
 
 /* =========================================
-   6. CHECK ACHIEVEMENTS
+   7. CHECK ACHIEVEMENTS
 ========================================= */
 
 function checkAchievements() {
@@ -244,13 +387,15 @@ function checkAchievements() {
 
 
 /* =========================================
-   7. COMPLETE QUIZ
+   8. COMPLETE QUIZ
 ========================================= */
 
 function recordCompletedQuiz() {
     achievementData.completedQuizzes++;
 
+    updateStreak();
     checkAchievements();
+    renderStreak();
 }
 
 function displayNewAchievementNotice() {
@@ -263,45 +408,58 @@ function displayNewAchievementNotice() {
     }
 
     const names = newlyUnlocked.map(id => {
-        const achievement = achievements.find(item => item.id === id);
+        const achievement =
+            achievements.find(item => item.id === id);
+
         return achievement ? achievement.name : id;
     });
 
     newAchievementNotice.hidden = false;
+
     newAchievementNotice.textContent =
         `🎉 New achievement unlocked: ${names.join(", ")}!`;
 }
 
 
 /* =========================================
-   8. PAGE NAVIGATION
+   9. PAGE NAVIGATION
 ========================================= */
 
 function showPage(pageToShow) {
     [landingPage, homePage, quizPage, resultsPage].forEach(page => {
-        if (page) page.hidden = true;
+        if (page) {
+            page.hidden = true;
+        }
     });
 
     if (pageToShow) {
         pageToShow.hidden = false;
-        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
     }
 }
 
 function enterbtn() {
     showPage(homePage);
     renderAchievements();
+    renderStreak();
 }
 
 function returnHome() {
     newlyUnlocked = [];
+
     showPage(homePage);
+
     renderAchievements();
+    renderStreak();
 }
 
 
 /* =========================================
-   9. POPULATE YEAR AND LEVEL SELECTS
+   10. POPULATE YEAR AND LEVEL SELECTS
 ========================================= */
 
 function populateSelects() {
@@ -332,7 +490,7 @@ function populateSelects() {
 
 
 /* =========================================
-   10. GET QUESTIONS
+   11. GET QUESTIONS
 ========================================= */
 
 function getQuestionBank() {
@@ -356,7 +514,7 @@ function getQuestionBank() {
 
 
 /* =========================================
-   11. START QUIZ
+   12. START QUIZ
 ========================================= */
 
 function startQuiz() {
@@ -370,6 +528,7 @@ function startQuiz() {
         alert(
             "No questions were found for this selection. Please check your questions.js file."
         );
+
         return;
     }
 
@@ -388,17 +547,19 @@ function startQuiz() {
     const levelName =
         levelSelect.options[levelSelect.selectedIndex].textContent;
 
-    quizTitle.textContent = `${subjectName} • ${yearName} • ${levelName}`;
+    quizTitle.textContent =
+        `${subjectName} • ${yearName} • ${levelName}`;
 
     scoreText.textContent = score;
 
     showPage(quizPage);
+
     displayQuestion();
 }
 
 
 /* =========================================
-   12. DISPLAY QUESTION
+   13. DISPLAY QUESTION
 ========================================= */
 
 function displayQuestion() {
@@ -415,6 +576,7 @@ function displayQuestion() {
     questionText.textContent = question.q;
 
     optionsContainer.innerHTML = "";
+
     feedback.textContent = "";
     feedback.className = "feedback";
 
@@ -429,6 +591,7 @@ function displayQuestion() {
         button.className = "option-btn";
 
         const letter = document.createElement("span");
+
         letter.className = "option-letter";
         letter.textContent = letters[index] || index + 1;
 
@@ -449,7 +612,7 @@ function displayQuestion() {
 
 
 /* =========================================
-   13. UPDATE PROGRESS
+   14. UPDATE PROGRESS
 ========================================= */
 
 function updateProgress() {
@@ -464,7 +627,7 @@ function updateProgress() {
 
 
 /* =========================================
-   14. CHECK ANSWER
+   15. CHECK ANSWER
 ========================================= */
 
 function checkAnswer(selectedIndex, selectedButton) {
@@ -491,6 +654,7 @@ function checkAnswer(selectedIndex, selectedButton) {
             `✓ Correct! ${question.explanation || "Well done!"}`;
 
         finishQuestion();
+
         return;
     }
 
@@ -499,12 +663,15 @@ function checkAnswer(selectedIndex, selectedButton) {
 
     if (attempts < 2) {
         feedback.className = "feedback wrong-feedback";
+
         feedback.textContent =
             "Not quite! Try one more time.";
+
     } else {
         answered = true;
 
-        const buttons = optionsContainer.querySelectorAll(".option-btn");
+        const buttons =
+            optionsContainer.querySelectorAll(".option-btn");
 
         if (buttons[correctAnswer]) {
             buttons[correctAnswer].classList.add("correct");
@@ -521,11 +688,12 @@ function checkAnswer(selectedIndex, selectedButton) {
 
 
 /* =========================================
-   15. FINISH QUESTION
+   16. FINISH QUESTION
 ========================================= */
 
 function finishQuestion() {
-    const buttons = optionsContainer.querySelectorAll(".option-btn");
+    const buttons =
+        optionsContainer.querySelectorAll(".option-btn");
 
     buttons.forEach(button => {
         button.disabled = true;
@@ -542,7 +710,7 @@ function finishQuestion() {
 
 
 /* =========================================
-   16. NEXT QUESTION
+   17. NEXT QUESTION
 ========================================= */
 
 function nextQuestion() {
@@ -559,41 +727,54 @@ function nextQuestion() {
 
 
 /* =========================================
-   17. SHOW RESULTS
+   18. SHOW RESULTS
 ========================================= */
 
 function showResults() {
     const total = selectedQuestions.length;
 
+    if (total === 0) return;
+
     const percentageScore =
         Math.round((score / total) * 100);
 
     finalScore.textContent = `${score} / ${total}`;
+
     percentage.textContent = `${percentageScore}%`;
 
     if (percentageScore === 100) {
         resultMessage.textContent = "Perfect Score! 🌟";
+
         resultDescription.textContent =
             "Amazing work! You answered every question correctly.";
+
     } else if (percentageScore >= 80) {
         resultMessage.textContent = "Excellent Work! 🎉";
+
         resultDescription.textContent =
             "You have a brilliant understanding of this topic.";
+
     } else if (percentageScore >= 60) {
         resultMessage.textContent = "Good Job! 👏";
+
         resultDescription.textContent =
             "You're making great progress. Keep practising!";
+
     } else if (percentageScore >= 40) {
         resultMessage.textContent = "Keep Going! 💪";
+
         resultDescription.textContent =
             "Every quiz is a chance to learn something new.";
+
     } else {
         resultMessage.textContent = "Keep Learning! 📚";
+
         resultDescription.textContent =
             "Don't give up. Practise again and improve your score.";
     }
 
     recordCompletedQuiz();
+
     displayNewAchievementNotice();
 
     showPage(resultsPage);
@@ -601,7 +782,7 @@ function showResults() {
 
 
 /* =========================================
-   18. RESTART QUIZ
+   19. RESTART QUIZ
 ========================================= */
 
 function restartQuiz() {
@@ -610,7 +791,7 @@ function restartQuiz() {
 
 
 /* =========================================
-   19. BUTTON EVENTS
+   20. BUTTON EVENTS
 ========================================= */
 
 if (enterBtn) {
@@ -639,13 +820,21 @@ if (resultsHomeBtn) {
 
 
 /* =========================================
-   20. START APPLICATION
+   21. START APPLICATION
 ========================================= */
 
 populateSelects();
+
 renderAchievements();
+renderStreak();
+
 showPage(landingPage);
 
 console.log("School Quiz Learning Hub loaded!");
 console.log("Achievement ranks:", achievements.length);
-console.log("Question database:", typeof questions !== "undefined" ? "Loaded" : "Not found");
+console.log("Daily streak system: Loaded");
+
+console.log(
+    "Question database:",
+    typeof questions !== "undefined" ? "Loaded" : "Not found"
+);
