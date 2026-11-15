@@ -1,294 +1,191 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Quiz Learning Hub</title>
+    <meta name="description" content="Learn, practise and test your knowledge with School Quiz Learning Hub.">
 
-    <title>School Quiz Learning Hub | Learn, Practise & Improve</title>
-    <meta name="description" content="Practise Maths, Science, English, History and Geography with interactive quizzes for Years 1–11 and five difficulty levels.">
-    <meta name="robots" content="index, follow">
-    <meta name="theme-color" content="#6554d9">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x2='1' y2='1'%3E%3Cstop stop-color='%23ff4d6d'/%3E%3Cstop offset='.25' stop-color='%23ffbd4a'/%3E%3Cstop offset='.5' stop-color='%234bd68b'/%3E%3Cstop offset='.75' stop-color='%234b9fff'/%3E%3Cstop offset='1' stop-color='%23b66cff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' stroke='%23fff' stroke-width='4' d='M50 5 62 20 82 18 83 38 97 50 83 63 82 83 62 80 50 95 38 80 18 83 17 63 3 50 17 37 18 18 38 20Z'/%3E%3Cpath fill='white' d='m50 25 7 16 18 2-13 12 4 18-16-9-16 9 4-18-13-12 18-2Z'/%3E%3C/svg%3E">
 
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="questions.js" defer></script>
+    <script src="script.js" defer></script>
 </head>
-
 <body>
 
-    <!-- BACKGROUND DECORATIONS -->
-    <div class="decoration decoration-one">📚</div>
-    <div class="decoration decoration-two">🔬</div>
-    <div class="decoration decoration-three">🌍</div>
-    <div class="decoration decoration-four">➗</div>
-    <div class="decoration decoration-five">✏️</div>
-    <div class="decoration decoration-six">🪐</div>
-    <div class="decoration decoration-seven">🧪</div>
-    <div class="decoration decoration-eight">📐</div>
-
-    <!-- HEADER -->
     <header class="site-header">
-        <a class="brand" href="index.html">
-            <span class="brand-icon">🎓</span>
-            <span>School Quiz <strong>Hub</strong></span>
+        <a href="#" class="brand" onclick="return false;">
+            <span class="brand-icon">✦</span>
+            <span>Learning Hub</span>
         </a>
-
-        <nav class="main-nav" aria-label="Main navigation">
-            <a href="index.html" class="nav-link active">Home</a>
-            <a href="about.html" class="nav-link">About</a>
-            <a href="contact.html" class="nav-link">Contact</a>
-            <a href="privacy-policy.html" class="nav-link">Privacy</a>
-        </nav>
+        <span class="header-tag">LEARN • PLAY • ACHIEVE</span>
     </header>
 
-    <!-- LANDING PAGE -->
-    <section id="landingPage" class="page active">
+    <main class="app-container">
 
-        <div class="landing-content">
+        <!-- LANDING PAGE -->
+        <section id="landingPage" class="page landing-page">
+            <div class="landing-glow"></div>
+            <div class="landing-content">
+                <div class="hero-icon">🎓</div>
+                <p class="eyebrow">WELCOME TO YOUR LEARNING JOURNEY</p>
+                <h1>School Quiz <span>Learning Hub</span></h1>
+                <p class="hero-description">
+                    Challenge yourself, build your knowledge and earn achievements
+                    as you learn.
+                </p>
+                <button id="enterBtn" class="btn btn-primary btn-large" type="button">
+                    Start Learning <span>→</span>
+                </button>
+                <div class="hero-features">
+                    <span>📚 5 Subjects</span>
+                    <span>🎯 11 School Years</span>
+                    <span>🏆 7 Ranks</span>
+                </div>
+            </div>
+        </section>
 
-            <div class="landing-badge">
-                ✨ YOUR LEARNING ADVENTURE STARTS HERE
+        <!-- HOME PAGE -->
+        <section id="homePage" class="page" hidden>
+            <div class="page-heading">
+                <p class="eyebrow">YOUR LEARNING DASHBOARD</p>
+                <h1>Ready to learn?</h1>
+                <p>Choose your subject, school year and difficulty.</p>
             </div>
 
-            <div class="landing-logo">🎓</div>
+            <div class="selection-card">
+                <div class="selection-title">
+                    <span class="section-icon">🚀</span>
+                    <div>
+                        <h2>Start a quiz</h2>
+                        <p>Choose your learning level below.</p>
+                    </div>
+                </div>
 
-            <h1>
-                Make Learning
-                <span>Fun & Exciting!</span>
-            </h1>
+                <div class="selection-grid">
+                    <label>
+                        <span>Subject</span>
+                        <select id="subjectSelect">
+                            <option value="math">Mathematics</option>
+                            <option value="science">Science</option>
+                            <option value="english">English</option>
+                            <option value="history">History</option>
+                            <option value="geography">Geography</option>
+                        </select>
+                    </label>
 
-            <p class="landing-description">
-                Challenge yourself, test your knowledge and improve
-                your school skills with interactive quizzes.
-            </p>
+                    <label>
+                        <span>School year</span>
+                        <select id="yearSelect"></select>
+                    </label>
 
-            <div class="landing-button-wrapper">
-                <button id="enterBtn" type="button">
-                    Start Learning
+                    <label>
+                        <span>Difficulty</span>
+                        <select id="levelSelect"></select>
+                    </label>
+                </div>
+
+                <button id="startBtn" class="btn btn-primary btn-full" type="button">
+                    Start My Quiz 🚀
                 </button>
             </div>
 
-            <div class="landing-features">
-                <span>📚 5 Subjects</span>
-                <span>🎒 Years 1–11</span>
-                <span>⭐ 5 Levels</span>
+            <!-- ACHIEVEMENTS -->
+            <section class="achievements-section">
+                <div class="achievement-heading">
+                    <div>
+                        <p class="eyebrow">YOUR COLLECTION</p>
+                        <h2>Achievements 🏆</h2>
+                        <p>Complete quizzes to climb the ranks.</p>
+                    </div>
+                    <div class="achievement-count" id="achievementSummary">0 / 7</div>
+                </div>
+
+                <div class="achievement-progress">
+                    <div class="achievement-progress-track">
+                        <div id="achievementProgressBar"></div>
+                    </div>
+                    <p id="achievementProgressText">0 of 7 ranks unlocked</p>
+                </div>
+
+                <div id="achievementGrid" class="achievement-grid"></div>
+            </section>
+        </section>
+
+        <!-- QUIZ PAGE -->
+        <section id="quizPage" class="page" hidden>
+            <div class="quiz-topbar">
+                <button id="homeBtn" class="btn btn-light" type="button">← Home</button>
+                <div class="quiz-score">⭐ Score: <span id="scoreText">0</span></div>
             </div>
 
-        </div>
-    </section>
+            <div class="quiz-card">
+                <div class="quiz-heading">
+                    <div>
+                        <p class="eyebrow">YOUR CHALLENGE</p>
+                        <h2 id="quizTitle">Quiz</h2>
+                    </div>
+                    <span id="progressText" class="progress-label">Question 1</span>
+                </div>
 
-    <!-- HOME / SELECTION PAGE -->
-    <main class="quiz-container selection-container"
-        id="homePage" style="display: none;">
+                <div class="progress-track">
+                    <div id="progressBar"></div>
+                </div>
 
-        <div class="section-heading">
-            <div class="logo">🎓</div>
+                <h2 id="questionText" class="question-text">Question goes here</h2>
 
-            <span class="eyebrow">LET'S GET STARTED</span>
+                <div id="options" class="options-grid"></div>
 
-            <h1>Choose Your Challenge</h1>
+                <div id="feedback" class="feedback" aria-live="polite"></div>
 
-            <p class="subtitle">
-                Select your subject, school year and difficulty.
-            </p>
-        </div>
-
-        <div class="subject-intro">
-            <span>💡</span>
-            Every quiz is an opportunity to learn something new!
-        </div>
-
-        <div class="selection-group">
-            <label for="subjectSelect">📚 Choose Your Subject</label>
-
-            <select id="subjectSelect">
-                <option value="">Select Subject</option>
-                <option value="math">➗ Maths</option>
-                <option value="science">🔬 Science</option>
-                <option value="english">📖 English</option>
-                <option value="history">🏛️ History</option>
-                <option value="geography">🌍 Geography</option>
-            </select>
-        </div>
-
-        <div class="selection-group">
-            <label for="yearSelect">🎒 Choose Your School Year</label>
-
-            <select id="yearSelect">
-                <option value="">Select Year</option>
-                <option value="year1">Year 1</option>
-                <option value="year2">Year 2</option>
-                <option value="year3">Year 3</option>
-                <option value="year4">Year 4</option>
-                <option value="year5">Year 5</option>
-                <option value="year6">Year 6</option>
-                <option value="year7">Year 7</option>
-                <option value="year8">Year 8</option>
-                <option value="year9">Year 9</option>
-                <option value="year10">Year 10</option>
-                <option value="year11">Year 11</option>
-            </select>
-        </div>
-
-        <div class="selection-group">
-            <label for="levelSelect">⭐ Choose Your Difficulty</label>
-
-            <select id="levelSelect">
-                <option value="">Select Level</option>
-                <option value="level1">Level 1 - Beginner</option>
-                <option value="level2">Level 2 - Easy</option>
-                <option value="level3">Level 3 - Intermediate</option>
-                <option value="level4">Level 4 - Advanced</option>
-                <option value="level5">Level 5 - Expert</option>
-            </select>
-        </div>
-
-        <button id="startBtn" class="btn" type="button">
-            Start My Quiz 🚀
-        </button>
-
-        <p class="small-text">
-            Choose your challenge and give it your best!
-        </p>
-
-        <!-- ACHIEVEMENTS -->
-        <section class="achievements-panel" aria-labelledby="achievementsTitle">
-
-            <div class="achievements-heading">
-                <span class="eyebrow">YOUR PROGRESS</span>
-                <h2 id="achievementsTitle">🏅 Your Achievements</h2>
-                <p id="achievementSummary">
-                    0 of 5 badges unlocked
-                </p>
+                <button id="nextBtn" class="btn btn-primary btn-full" type="button" hidden>
+                    Next Question →
+                </button>
             </div>
+        </section>
 
-            <div id="achievementGrid" class="achievement-grid"></div>
+        <!-- RESULTS PAGE -->
+        <section id="resultsPage" class="page" hidden>
+            <div class="results-card">
+                <div class="results-icon">🏆</div>
+                <p class="eyebrow">QUIZ COMPLETED</p>
+                <h1>Your results</h1>
 
+                <div class="result-score">
+                    <span id="finalScore">0 / 0</span>
+                    <span id="percentage">0%</span>
+                </div>
+
+                <h2 id="resultMessage">Well done!</h2>
+                <p id="resultDescription">You have completed your quiz.</p>
+
+                <div id="newAchievementNotice" class="new-achievement-notice" hidden></div>
+
+                <div class="results-buttons">
+                    <button id="restartBtn" class="btn btn-primary" type="button">
+                        Try Again ↻
+                    </button>
+                    <button id="resultsHomeBtn" class="btn btn-light" type="button">
+                        Back to Home
+                    </button>
+                </div>
+            </div>
         </section>
 
     </main>
 
-    <!-- QUIZ PAGE -->
-    <main class="quiz-container quiz-page"
-        id="quizPage" style="display: none;">
-
-        <div class="quiz-heading">
-            <span class="eyebrow">YOUR CHALLENGE</span>
-            <h1 id="quizTitle">Your Quiz</h1>
-        </div>
-
-        <div class="score-bar">
-
-            <div class="score-item">
-                🏆 <span id="scoreText">Score: 0</span>
-            </div>
-
-            <div class="score-item">
-                📝 <span id="progressText">Question 1/10</span>
-            </div>
-
-        </div>
-
-        <div class="progress-track"
-            role="progressbar"
-            aria-label="Quiz progress"
-            aria-valuemin="0"
-            aria-valuemax="100"
-            aria-valuenow="0">
-
-            <div id="progressBar" class="progress-fill"></div>
-        </div>
-
-        <section class="question-card">
-
-            <span class="question-label">YOUR QUESTION</span>
-
-            <h2 id="questionText"></h2>
-
-            <div id="options"></div>
-
-            <p id="feedback" aria-live="polite"></p>
-
-            <div id="explanationBox" class="explanation-box"
-                style="display: none;"></div>
-
-        </section>
-
-        <button id="nextBtn" class="btn" type="button" disabled>
-            Next Question →
-        </button>
-
-        <button id="homeBtn" class="secondary-btn" type="button">
-            🏠 Back to Home
-        </button>
-
-    </main>
-
-    <!-- RESULTS PAGE -->
-    <main class="quiz-container results-page"
-        id="resultsPage" style="display: none;">
-
-        <div class="result-icon">🏆</div>
-
-        <span class="eyebrow">CHALLENGE COMPLETED</span>
-
-        <h1>Quiz Complete!</h1>
-
-        <p class="subtitle">
-            You've finished your challenge. Great effort!
-        </p>
-
-        <div class="result-score">
-            <span id="finalScore">0/10</span>
-            <small id="percentage">0%</small>
-        </div>
-
-        <h2 id="resultMessage">Well done!</h2>
-
-        <p id="resultDescription"></p>
-
-        <div id="newAchievementNotice"
-            class="new-achievement-notice"
-            style="display: none;"
-            aria-live="polite">
-        </div>
-
-        <button id="restartBtn" class="btn" type="button">
-            🔄 Try Again
-        </button>
-
-        <button id="resultsHomeBtn" class="secondary-btn" type="button">
-            🏠 Back to Home
-        </button>
-
-    </main>
-
-    <!-- FOOTER -->
     <footer class="site-footer">
-
-        <div class="footer-brand">
-            🎓 School Quiz Learning Hub
-        </div>
-
-        <p>
-            Making learning fun through interactive educational quizzes.
+        <p class="footer-description">
+            Making learning more enjoyable, one question at a time.
         </p>
-
         <div class="footer-links">
-            <a href="index.html">Home</a>
-            <a href="about.html">About Us</a>
-            <a href="contact.html">Contact Us</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
             <a href="privacy-policy.html">Privacy Policy</a>
         </div>
-
-        <p class="copyright">
-            © 2026 School Quiz Learning Hub. All rights reserved.
-        </p>
-
+        <p>© 2026 School Quiz Learning Hub. All rights reserved.</p>
     </footer>
-
-    <!-- LOAD QUESTION DATABASE FIRST -->
-    <script src="questions.js"></script>
-    <script src="script.js"></script>
 
 </body>
 </html>
