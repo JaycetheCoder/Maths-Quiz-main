@@ -984,3 +984,9 @@ select:focus-visible {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* Centre the Start Learning button */
+.landing-button {
+    display: block;
+    margin: 25px auto 0;
+}
