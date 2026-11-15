@@ -1,28 +1,28 @@
+ 
 /* =========================================
-   SCHOOL QUIZ - COMPLETE SCRIPT
-   ========================================= */
+   SCHOOL QUIZ LEARNING HUB
+   COMPLETE QUIZ SCRIPT
+========================================= */
 
-// =========================================
-// 1. PAGE ELEMENTS
-// =========================================
+
+/* =========================================
+   1. PAGE ELEMENTS
+========================================= */
 
 const homePage = document.querySelector("#homePage");
 const quizPage = document.querySelector("#quizPage");
 const resultsPage = document.querySelector("#resultsPage");
 
-// SELECTIONS
 const subjectSelect = document.querySelector("#subjectSelect");
 const yearSelect = document.querySelector("#yearSelect");
 const levelSelect = document.querySelector("#levelSelect");
 
-// BUTTONS
 const startBtn = document.querySelector("#startBtn");
 const nextBtn = document.querySelector("#nextBtn");
 const homeBtn = document.querySelector("#homeBtn");
 const restartBtn = document.querySelector("#restartBtn");
 const resultsHomeBtn = document.querySelector("#resultsHomeBtn");
 
-// QUIZ ELEMENTS
 const quizTitle = document.querySelector("#quizTitle");
 const questionText = document.querySelector("#questionText");
 const optionsDiv = document.querySelector("#options");
@@ -32,27 +32,23 @@ const scoreText = document.querySelector("#scoreText");
 const progressText = document.querySelector("#progressText");
 const progressBar = document.querySelector("#progressBar");
 
-// RESULTS ELEMENTS
 const finalScore = document.querySelector("#finalScore");
 const percentage = document.querySelector("#percentage");
 const resultMessage = document.querySelector("#resultMessage");
 const resultDescription = document.querySelector("#resultDescription");
 
-// LANDING PAGE ELEMENT
 const enterBtn = document.getElementById("enterBtn");
 const landingPage = document.getElementById("landingPage");
 
 
-
-// =========================================
-// 2. QUIZ VARIABLES
-// =========================================
+/* =========================================
+   2. QUIZ VARIABLES
+========================================= */
 
 let questionSet = [];
 
 let currentQuestion = 0;
 let score = 0;
-
 let attempts = 0;
 let answered = false;
 
@@ -64,9 +60,38 @@ const QUESTIONS_PER_QUIZ = 10;
 const MAX_ATTEMPTS = 2;
 
 
-// =========================================
-// 3. SHUFFLE QUESTIONS
-// =========================================
+/* =========================================
+   3. CREATE EXPLANATION ELEMENT
+========================================= */
+
+// This creates the explanation area automatically.
+// You do not need to edit your HTML.
+
+let explanationBox = document.getElementById("explanationBox");
+
+if (!explanationBox && feedback?.parentElement) {
+
+    explanationBox = document.createElement("div");
+
+    explanationBox.id = "explanationBox";
+
+    explanationBox.style.display = "none";
+    explanationBox.style.marginTop = "12px";
+    explanationBox.style.padding = "14px";
+    explanationBox.style.borderRadius = "12px";
+    explanationBox.style.background = "#eef6ff";
+    explanationBox.style.color = "#293650";
+    explanationBox.style.lineHeight = "1.6";
+    explanationBox.style.textAlign = "left";
+
+    feedback.insertAdjacentElement("afterend", explanationBox);
+
+}
+
+
+/* =========================================
+   4. SHUFFLE QUESTIONS
+========================================= */
 
 function shuffleQuestions(array) {
 
@@ -76,37 +101,43 @@ function shuffleQuestions(array) {
 
         const j = Math.floor(Math.random() * (i + 1));
 
-        [shuffled[i], shuffled[j]] =
-        [shuffled[j], shuffled[i]];
+        [shuffled[i], shuffled[j]] = [
+            shuffled[j],
+            shuffled[i]
+        ];
 
     }
 
     return shuffled;
+
 }
 
 
-// =========================================
-// 4. PAGE NAVIGATION
-// =========================================
+/* =========================================
+   5. PAGE NAVIGATION
+========================================= */
 
-//LANDING PAGE
 function enterbtn() {
-    console.log("Clicked!!!")
-    landingPage.style.display = "none";
-    homePage.style.display = "block";
-    console.log("enter button has been clicked")
+
+    if (landingPage) {
+        landingPage.style.display = "none";
+    }
+
+    if (homePage) {
+        homePage.style.display = "block";
+    }
+
 }
 
 function showPage(page) {
 
-    homePage.style.display = "none";
-    quizPage.style.display = "none";
+    if (homePage) homePage.style.display = "none";
+    if (quizPage) quizPage.style.display = "none";
+    if (resultsPage) resultsPage.style.display = "none";
 
-    if (resultsPage) {
-        resultsPage.style.display = "none";
+    if (page) {
+        page.style.display = "block";
     }
-
-    page.style.display = "block";
 
     window.scrollTo({
         top: 0,
@@ -116,9 +147,9 @@ function showPage(page) {
 }
 
 
-// =========================================
-// 5. START QUIZ
-// =========================================
+/* =========================================
+   6. START QUIZ
+========================================= */
 
 function startQuiz() {
 
@@ -126,16 +157,13 @@ function startQuiz() {
     selectedYear = yearSelect.value;
     selectedLevel = levelSelect.value;
 
-    // Check selections
-
     if (!selectedSubject || !selectedYear || !selectedLevel) {
 
         alert("Please select a subject, year and level.");
 
         return;
-    }
 
-    // Find questions
+    }
 
     const availableQuestions =
         questions[selectedSubject]?.[selectedYear]?.[selectedLevel];
@@ -145,24 +173,18 @@ function startQuiz() {
         alert("No questions are available for this selection.");
 
         return;
+
     }
 
-    // Select random questions
-
-    questionSet = shuffleQuestions(availableQuestions)
-        .slice(
-            0,
-            Math.min(QUESTIONS_PER_QUIZ, availableQuestions.length)
-        );
-
-    // Reset quiz
+    questionSet = shuffleQuestions(availableQuestions).slice(
+        0,
+        Math.min(QUESTIONS_PER_QUIZ, availableQuestions.length)
+    );
 
     currentQuestion = 0;
     score = 0;
     attempts = 0;
     answered = false;
-
-    // Create title
 
     const subjectName =
         selectedSubject.charAt(0).toUpperCase() +
@@ -177,8 +199,6 @@ function startQuiz() {
     quizTitle.textContent =
         `${subjectName} | ${yearName} | ${levelName}`;
 
-    // Reset buttons
-
     nextBtn.textContent = "Next Question →";
     nextBtn.disabled = true;
     nextBtn.style.display = "block";
@@ -190,9 +210,9 @@ function startQuiz() {
 }
 
 
-// =========================================
-// 6. UPDATE SCORE AND PROGRESS
-// =========================================
+/* =========================================
+   7. UPDATE PROGRESS
+========================================= */
 
 function updateProgress() {
 
@@ -205,21 +225,17 @@ function updateProgress() {
         ((currentQuestion + 1) / questionSet.length) * 100;
 
     if (progressBar) {
-
         progressBar.style.width = `${progress}%`;
-
     }
 
 }
 
 
-// =========================================
-// 7. DISPLAY QUESTION
-// =========================================
+/* =========================================
+   8. DISPLAY QUESTION
+========================================= */
 
 function displayQuestion() {
-
-    // Reset attempts for each question
 
     attempts = 0;
     answered = false;
@@ -233,11 +249,25 @@ function displayQuestion() {
     feedback.textContent = "";
     feedback.className = "";
 
+    if (explanationBox) {
+
+        explanationBox.style.display = "none";
+        explanationBox.textContent = "";
+
+    }
+
     nextBtn.disabled = true;
 
     updateProgress();
 
-    // Create answer buttons
+    // Display topic if available.
+
+    if (question.topic) {
+
+        quizTitle.textContent =
+            `${selectedSubject.toUpperCase()} | ${selectedYear.replace("year", "Year ")} | ${selectedLevel.replace("level", "Level ")} | ${question.topic}`;
+
+    }
 
     question.options.forEach((option, index) => {
 
@@ -245,7 +275,6 @@ function displayQuestion() {
 
         button.type = "button";
         button.className = "answer-btn";
-
         button.textContent = option;
 
         button.addEventListener("click", function () {
@@ -261,25 +290,43 @@ function displayQuestion() {
 }
 
 
-// =========================================
-// 8. CHECK ANSWER - TWO ATTEMPTS ONLY
-// =========================================
+/* =========================================
+   9. SHOW EXPLANATION
+========================================= */
+
+function showExplanation(question) {
+
+    if (!explanationBox) return;
+
+    const explanation =
+        question.explanation ||
+        "Review the question and think about why the correct answer works.";
+
+    explanationBox.textContent =
+        "💡 Explanation: " + explanation;
+
+    explanationBox.style.display = "block";
+
+}
+
+
+/* =========================================
+   10. CHECK ANSWER
+========================================= */
 
 function checkAnswer(selectedIndex, selectedButton) {
-
-    // Prevent extra answers
 
     if (answered) return;
 
     const question = questionSet[currentQuestion];
 
-    // Count the attempt
-
     attempts++;
 
-    // ---------------------------------
+    const allButtons =
+        optionsDiv.querySelectorAll("button");
+
+
     // CORRECT ANSWER
-    // ---------------------------------
 
     if (selectedIndex === question.answer) {
 
@@ -294,82 +341,61 @@ function checkAnswer(selectedIndex, selectedButton) {
 
         feedback.className = "correct-feedback";
 
-        // Disable all answers
-
-        optionsDiv.querySelectorAll("button").forEach(button => {
-
+        allButtons.forEach(button => {
             button.disabled = true;
-
         });
 
         nextBtn.disabled = false;
 
+        showExplanation(question);
+
         updateScoreOnly();
+
+        return;
 
     }
 
-    // ---------------------------------
-    // WRONG ANSWER
-    // ---------------------------------
 
-    else {
+    // INCORRECT ANSWER
 
-        selectedButton.classList.add("wrong");
+    selectedButton.classList.add("wrong");
+    selectedButton.disabled = true;
 
-        selectedButton.disabled = true;
+    if (attempts < MAX_ATTEMPTS) {
 
-        // FIRST WRONG ATTEMPT
+        feedback.textContent =
+            "✗ Not quite! You have ONE more chance.";
 
-        if (attempts < MAX_ATTEMPTS) {
+        feedback.className = "wrong-feedback";
 
-            feedback.textContent =
-                "✗ Not quite! You have ONE more chance.";
+    } else {
 
-            feedback.className = "wrong-feedback";
+        answered = true;
 
-        }
+        feedback.textContent =
+            "The correct answer is: " +
+            question.options[question.answer];
 
-        // SECOND WRONG ATTEMPT
+        feedback.className = "wrong-feedback";
 
-        else {
+        allButtons[question.answer].classList.add("correct");
 
-            answered = true;
+        allButtons.forEach(button => {
+            button.disabled = true;
+        });
 
-            feedback.textContent =
-                "✗ No more chances! The correct answer is: " +
-                question.options[question.answer];
+        nextBtn.disabled = false;
 
-            feedback.className = "wrong-feedback";
-
-            // Highlight correct answer
-
-            const allButtons =
-                optionsDiv.querySelectorAll("button");
-
-            allButtons[question.answer].classList.add("correct");
-
-            // Disable all answers
-
-            allButtons.forEach(button => {
-
-                button.disabled = true;
-
-            });
-
-            // Allow next question
-
-            nextBtn.disabled = false;
-
-        }
+        showExplanation(question);
 
     }
 
 }
 
 
-// =========================================
-// 9. UPDATE SCORE
-// =========================================
+/* =========================================
+   11. UPDATE SCORE
+========================================= */
 
 function updateScoreOnly() {
 
@@ -378,13 +404,11 @@ function updateScoreOnly() {
 }
 
 
-// =========================================
-// 10. NEXT QUESTION
-// =========================================
+/* =========================================
+   12. NEXT QUESTION
+========================================= */
 
 function nextQuestion() {
-
-    // Cannot continue until answered
 
     if (!answered) return;
 
@@ -403,9 +427,9 @@ function nextQuestion() {
 }
 
 
-// =========================================
-// 11. SHOW RESULTS
-// =========================================
+/* =========================================
+   13. SHOW RESULTS
+========================================= */
 
 function showResults() {
 
@@ -418,6 +442,7 @@ function showResults() {
         returnHome();
 
         return;
+
     }
 
     showPage(resultsPage);
@@ -441,36 +466,28 @@ function showResults() {
         description =
             "Amazing! You answered every question correctly!";
 
-    }
-
-    else if (resultPercentage >= 80) {
+    } else if (resultPercentage >= 80) {
 
         message = "Excellent Work! 🌟";
 
         description =
             "You have done brilliantly. Keep it up!";
 
-    }
-
-    else if (resultPercentage >= 60) {
+    } else if (resultPercentage >= 60) {
 
         message = "Well Done! 👏";
 
         description =
             "Great effort! Keep practising and improving!";
 
-    }
-
-    else if (resultPercentage >= 40) {
+    } else if (resultPercentage >= 40) {
 
         message = "Good Try! 💪";
 
         description =
             "You are learning! Keep practising and try again.";
 
-    }
-
-    else {
+    } else {
 
         message = "Keep Learning! 📚";
 
@@ -486,9 +503,9 @@ function showResults() {
 }
 
 
-// =========================================
-// 12. RETURN HOME
-// =========================================
+/* =========================================
+   14. RETURN HOME
+========================================= */
 
 function returnHome() {
 
@@ -507,6 +524,13 @@ function returnHome() {
 
     feedback.textContent = "";
 
+    if (explanationBox) {
+
+        explanationBox.style.display = "none";
+        explanationBox.textContent = "";
+
+    }
+
     if (progressBar) {
 
         progressBar.style.width = "0%";
@@ -516,9 +540,9 @@ function returnHome() {
 }
 
 
-// =========================================
-// 13. RESTART QUIZ
-// =========================================
+/* =========================================
+   15. RESTART QUIZ
+========================================= */
 
 function restartQuiz() {
 
@@ -527,39 +551,48 @@ function restartQuiz() {
 }
 
 
-// =========================================
-// 14. BUTTON EVENTS
-// =========================================
+/* =========================================
+   16. BUTTON EVENTS
+========================================= */
 
-startBtn.addEventListener("click", startQuiz);
+if (startBtn) {
+    startBtn.addEventListener("click", startQuiz);
+}
 
-nextBtn.addEventListener("click", nextQuestion);
+if (nextBtn) {
+    nextBtn.addEventListener("click", nextQuestion);
+}
 
-homeBtn.addEventListener("click", returnHome);
+if (homeBtn) {
+    homeBtn.addEventListener("click", returnHome);
+}
 
 if (restartBtn) {
-
     restartBtn.addEventListener("click", restartQuiz);
-
 }
 
 if (resultsHomeBtn) {
-
     resultsHomeBtn.addEventListener("click", returnHome);
+}
 
+if (enterBtn) {
+    enterBtn.addEventListener("click", enterbtn);
 }
 
 
-// =========================================
-// 15. KEYBOARD SUPPORT
-// =========================================
+/* =========================================
+   17. KEYBOARD SUPPORT
+========================================= */
 
 document.addEventListener("keydown", function(event) {
 
-    if (quizPage.style.display !== "block") return;
+    if (!quizPage || quizPage.style.display !== "block") {
+        return;
+    }
 
     if (
         event.key === "Enter" &&
+        nextBtn &&
         !nextBtn.disabled &&
         answered
     ) {
@@ -571,10 +604,17 @@ document.addEventListener("keydown", function(event) {
 });
 
 
-// =========================================
-// 16. QUIZ READY
-// =========================================
+/* =========================================
+   18. QUIZ READY
+========================================= */
 
-console.log("School Quiz is ready!");
+console.log("School Quiz Learning Hub is ready!");
+
+console.log("Subjects:", Object.keys(questions));
+
+console.log("Years: 1–11");
+
+console.log("Levels: 1–5");
 
 console.log("Two attempts per question enabled.");
+
