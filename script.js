@@ -1,47 +1,46 @@
-
 /* =========================================
    SCHOOL QUIZ LEARNING HUB
-   COMPLETE QUIZ + ACHIEVEMENTS SYSTEM
+   COMPLETE QUIZ + 7 ACHIEVEMENT RANKS
 ========================================= */
-
 
 /* =========================================
    1. PAGE ELEMENTS
 ========================================= */
 
+const landingPage = document.querySelector("#landingPage");
 const homePage = document.querySelector("#homePage");
 const quizPage = document.querySelector("#quizPage");
 const resultsPage = document.querySelector("#resultsPage");
-const landingPage = document.querySelector("#landingPage");
 
+const enterBtn = document.querySelector("#enterBtn");
 const subjectSelect = document.querySelector("#subjectSelect");
 const yearSelect = document.querySelector("#yearSelect");
 const levelSelect = document.querySelector("#levelSelect");
-
 const startBtn = document.querySelector("#startBtn");
-const nextBtn = document.querySelector("#nextBtn");
-const homeBtn = document.querySelector("#homeBtn");
-const restartBtn = document.querySelector("#restartBtn");
-const resultsHomeBtn = document.querySelector("#resultsHomeBtn");
 
 const quizTitle = document.querySelector("#quizTitle");
-const questionText = document.querySelector("#questionText");
-const optionsDiv = document.querySelector("#options");
-const feedback = document.querySelector("#feedback");
-const explanationBox = document.querySelector("#explanationBox");
-
 const scoreText = document.querySelector("#scoreText");
 const progressText = document.querySelector("#progressText");
 const progressBar = document.querySelector("#progressBar");
-const progressTrack = document.querySelector(".progress-track");
+const questionText = document.querySelector("#questionText");
+const optionsContainer = document.querySelector("#options");
+const feedback = document.querySelector("#feedback");
+
+const nextBtn = document.querySelector("#nextBtn");
+const homeBtn = document.querySelector("#homeBtn");
 
 const finalScore = document.querySelector("#finalScore");
 const percentage = document.querySelector("#percentage");
 const resultMessage = document.querySelector("#resultMessage");
 const resultDescription = document.querySelector("#resultDescription");
 
+const restartBtn = document.querySelector("#restartBtn");
+const resultsHomeBtn = document.querySelector("#resultsHomeBtn");
+
 const achievementGrid = document.querySelector("#achievementGrid");
 const achievementSummary = document.querySelector("#achievementSummary");
+const achievementProgressBar = document.querySelector("#achievementProgressBar");
+const achievementProgressText = document.querySelector("#achievementProgressText");
 const newAchievementNotice = document.querySelector("#newAchievementNotice");
 
 
@@ -49,788 +48,572 @@ const newAchievementNotice = document.querySelector("#newAchievementNotice");
    2. QUIZ VARIABLES
 ========================================= */
 
-let questionSet = [];
+let selectedQuestions = [];
 let currentQuestion = 0;
 let score = 0;
 let attempts = 0;
 let answered = false;
 
-let selectedSubject = "";
-let selectedYear = "";
-let selectedLevel = "";
+let selectedSubject = "math";
+let selectedYear = "year1";
+let selectedLevel = "level1";
 
-let quizResultSaved = false;
-
-const QUESTIONS_PER_QUIZ = 10;
-const MAX_ATTEMPTS = 2;
-
-const ACHIEVEMENT_STORAGE_KEY = "schoolQuizAchievements";
+let newlyUnlocked = [];
 
 
 /* =========================================
-   3. SHUFFLE QUESTIONS
+   3. ACHIEVEMENT DATABASE
 ========================================= */
 
-function shuffleQuestions(array) {
-
-    const shuffled = [...array];
-
-    for (let i = shuffled.length - 1; i > 0; i--) {
-
-        const j = Math.floor(Math.random() * (i + 1));
-
-        [shuffled[i], shuffled[j]] = [
-            shuffled[j],
-            shuffled[i]
-        ];
-
-    }
-
-    return shuffled;
-
-}
-
-
-/* =========================================
-   4. PAGE NAVIGATION
-========================================= */
-
-function enterbtn() {
-
-    if (landingPage) {
-        landingPage.style.display = "none";
-    }
-
-    if (homePage) {
-        homePage.style.display = "block";
-    }
-
-    renderAchievements();
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-
-}
-
-function showPage(page) {
-
-    if (landingPage) landingPage.style.display = "none";
-    if (homePage) homePage.style.display = "none";
-    if (quizPage) quizPage.style.display = "none";
-    if (resultsPage) resultsPage.style.display = "none";
-
-    if (page) {
-        page.style.display = "block";
-    }
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-
-}
-
-
-/* =========================================
-   5. START QUIZ
-========================================= */
-
-function startQuiz() {
-
-    selectedSubject = subjectSelect.value;
-    selectedYear = yearSelect.value;
-    selectedLevel = levelSelect.value;
-
-    if (!selectedSubject || !selectedYear || !selectedLevel) {
-
-        alert("Please select a subject, year and level.");
-
-        return;
-
-    }
-
-    if (typeof questions === "undefined") {
-
-        alert("The question database could not be loaded. Please refresh the page.");
-
-        return;
-
-    }
-
-    const availableQuestions =
-        questions[selectedSubject]?.[selectedYear]?.[selectedLevel];
-
-    if (!Array.isArray(availableQuestions) || availableQuestions.length === 0) {
-
-        alert("No questions are available for this selection.");
-
-        return;
-
-    }
-
-    questionSet = shuffleQuestions(availableQuestions).slice(
-        0,
-        Math.min(QUESTIONS_PER_QUIZ, availableQuestions.length)
-    );
-
-    currentQuestion = 0;
-    score = 0;
-    attempts = 0;
-    answered = false;
-    quizResultSaved = false;
-
-    const subjectName =
-        selectedSubject.charAt(0).toUpperCase() +
-        selectedSubject.slice(1);
-
-    const yearName =
-        selectedYear.replace("year", "Year ");
-
-    const levelName =
-        selectedLevel.replace("level", "Level ");
-
-    quizTitle.textContent =
-        `${subjectName} | ${yearName} | ${levelName}`;
-
-    nextBtn.textContent = "Next Question →";
-    nextBtn.disabled = true;
-    nextBtn.style.display = "inline-flex";
-
-    showPage(quizPage);
-
-    displayQuestion();
-
-}
-
-
-/* =========================================
-   6. UPDATE PROGRESS
-========================================= */
-
-function updateProgress() {
-
-    scoreText.textContent = `Score: ${score}`;
-
-    progressText.textContent =
-        `Question ${currentQuestion + 1}/${questionSet.length}`;
-
-    const progress =
-        ((currentQuestion + 1) / questionSet.length) * 100;
-
-    if (progressBar) {
-        progressBar.style.width = `${progress}%`;
-    }
-
-    if (progressTrack) {
-        progressTrack.setAttribute(
-            "aria-valuenow",
-            String(Math.round(progress))
-        );
-    }
-
-}
-
-
-/* =========================================
-   7. DISPLAY QUESTION
-========================================= */
-
-function displayQuestion() {
-
-    attempts = 0;
-    answered = false;
-
-    const question = questionSet[currentQuestion];
-
-    questionText.textContent = question.q;
-
-    optionsDiv.innerHTML = "";
-
-    feedback.textContent = "";
-    feedback.className = "";
-
-    if (explanationBox) {
-        explanationBox.style.display = "none";
-        explanationBox.textContent = "";
-    }
-
-    nextBtn.disabled = true;
-
-    updateProgress();
-
-    if (question.topic) {
-
-        quizTitle.textContent =
-            `${selectedSubject.toUpperCase()} | ` +
-            `${selectedYear.replace("year", "Year ")} | ` +
-            `${selectedLevel.replace("level", "Level ")} | ` +
-            `${question.topic}`;
-
-    }
-
-    question.options.forEach((option, index) => {
-
-        const button = document.createElement("button");
-
-        button.type = "button";
-        button.className = "answer-btn";
-        button.textContent = option;
-
-        button.addEventListener("click", function () {
-
-            checkAnswer(index, button);
-
-        });
-
-        optionsDiv.appendChild(button);
-
-    });
-
-}
-
-
-/* =========================================
-   8. SHOW EXPLANATION
-========================================= */
-
-function showExplanation(question) {
-
-    if (!explanationBox) return;
-
-    const explanation =
-        question.explanation ||
-        "Review the question and think about why the correct answer works.";
-
-    explanationBox.textContent =
-        "💡 Explanation: " + explanation;
-
-    explanationBox.style.display = "block";
-
-}
-
-
-/* =========================================
-   9. CHECK ANSWER
-========================================= */
-
-function checkAnswer(selectedIndex, selectedButton) {
-
-    if (answered) return;
-
-    const question = questionSet[currentQuestion];
-
-    attempts++;
-
-    const allButtons =
-        optionsDiv.querySelectorAll("button");
-
-
-    // CORRECT ANSWER
-
-    if (selectedIndex === question.answer) {
-
-        answered = true;
-
-        score++;
-
-        selectedButton.classList.add("correct");
-
-        feedback.textContent =
-            "✓ Correct! Brilliant work!";
-
-        feedback.className = "correct-feedback";
-
-        allButtons.forEach(button => {
-            button.disabled = true;
-        });
-
-        nextBtn.disabled = false;
-
-        showExplanation(question);
-
-        updateScoreOnly();
-
-        return;
-
-    }
-
-
-    // INCORRECT ANSWER
-
-    selectedButton.classList.add("wrong");
-    selectedButton.disabled = true;
-
-    if (attempts < MAX_ATTEMPTS) {
-
-        feedback.textContent =
-            "✗ Not quite! You have ONE more chance.";
-
-        feedback.className = "wrong-feedback";
-
-    } else {
-
-        answered = true;
-
-        feedback.textContent =
-            "The correct answer is: " +
-            question.options[question.answer];
-
-        feedback.className = "wrong-feedback";
-
-        if (allButtons[question.answer]) {
-            allButtons[question.answer].classList.add("correct");
-        }
-
-        allButtons.forEach(button => {
-            button.disabled = true;
-        });
-
-        nextBtn.disabled = false;
-
-        showExplanation(question);
-
-    }
-
-}
-
-
-/* =========================================
-   10. UPDATE SCORE
-========================================= */
-
-function updateScoreOnly() {
-
-    scoreText.textContent = `Score: ${score}`;
-
-}
-
-
-/* =========================================
-   11. NEXT QUESTION
-========================================= */
-
-function nextQuestion() {
-
-    if (!answered) return;
-
-    currentQuestion++;
-
-    if (currentQuestion < questionSet.length) {
-
-        displayQuestion();
-
-    } else {
-
-        showResults();
-
-    }
-
-}
-
-
-/* =========================================
-   12. SHOW RESULTS
-========================================= */
-
-function showResults() {
-
-    if (quizResultSaved) return;
-
-    if (!resultsPage) {
-
-        alert(
-            `Quiz complete! Your score is ${score}/${questionSet.length}`
-        );
-
-        returnHome();
-
-        return;
-
-    }
-
-    quizResultSaved = true;
-
-    const total = questionSet.length;
-
-    const resultPercentage =
-        Math.round((score / total) * 100);
-
-    finalScore.textContent = `${score}/${total}`;
-    percentage.textContent = `${resultPercentage}%`;
-
-    let message;
-    let description;
-
-    if (resultPercentage === 100) {
-
-        message = "Perfect Score! 🏆";
-
-        description =
-            "Amazing! You answered every question correctly!";
-
-    } else if (resultPercentage >= 80) {
-
-        message = "Excellent Work! 🌟";
-
-        description =
-            "You have done brilliantly. Keep it up!";
-
-    } else if (resultPercentage >= 60) {
-
-        message = "Well Done! 👏";
-
-        description =
-            "Great effort! Keep practising and improving!";
-
-    } else if (resultPercentage >= 40) {
-
-        message = "Good Try! 💪";
-
-        description =
-            "You are learning! Keep practising and try again.";
-
-    } else {
-
-        message = "Keep Learning! 📚";
-
-        description =
-            "Every mistake is a chance to learn something new.";
-
-    }
-
-    resultMessage.textContent = message;
-    resultDescription.textContent = description;
-
-    // Save the quiz and check for new achievements.
-    const newlyUnlocked = recordCompletedQuiz(resultPercentage);
-
-    displayNewAchievementNotice(newlyUnlocked);
-
-    showPage(resultsPage);
-
-}
-
-
-/* =========================================
-   13. ACHIEVEMENTS DATABASE
-========================================= */
-
-const achievementList = [
-
+const achievements = [
     {
-        id: "first",
-        icon: "🎯",
-        title: "First Quiz",
+        id: "bronze",
+        name: "Bronze",
+        icon: "★",
         description: "Complete your first quiz.",
-        check: data => data.completedQuizzes >= 1
+        requirement: 1,
+        className: "badge-bronze"
     },
-
     {
-        id: "high",
-        icon: "⭐",
-        title: "High Scorer",
-        description: "Get at least 80%.",
-        check: data => data.bestPercentage >= 80
+        id: "silver",
+        name: "Silver",
+        icon: "✦",
+        description: "Complete 3 quizzes.",
+        requirement: 3,
+        className: "badge-silver"
     },
-
     {
-        id: "perfect",
-        icon: "🏆",
-        title: "Perfect Score",
-        description: "Get 100% in a quiz.",
-        check: data => data.bestPercentage === 100
-    },
-
-    {
-        id: "consistent",
-        icon: "🔥",
-        title: "Consistent Learner",
+        id: "gold",
+        name: "Gold",
+        icon: "★",
         description: "Complete 5 quizzes.",
-        check: data => data.completedQuizzes >= 5
+        requirement: 5,
+        className: "badge-gold"
     },
-
     {
-        id: "knowledge",
-        icon: "📚",
-        title: "Knowledge Seeker",
+        id: "platinum",
+        name: "Platinum",
+        icon: "◆",
         description: "Complete 10 quizzes.",
-        check: data => data.completedQuizzes >= 10
+        requirement: 10,
+        className: "badge-platinum"
+    },
+    {
+        id: "diamond",
+        name: "Diamond",
+        icon: "💎",
+        description: "Complete 15 quizzes.",
+        requirement: 15,
+        className: "badge-diamond"
+    },
+    {
+        id: "ruby",
+        name: "Ruby",
+        icon: "♦",
+        description: "Complete 20 quizzes.",
+        requirement: 20,
+        className: "badge-ruby"
+    },
+    {
+        id: "rainbow",
+        name: "Rainbow",
+        icon: "✧",
+        description: "Complete 30 quizzes.",
+        requirement: 30,
+        className: "badge-rainbow"
     }
-
 ];
 
 
 /* =========================================
-   14. LOAD ACHIEVEMENT DATA
+   4. SAVE AND LOAD ACHIEVEMENTS
 ========================================= */
 
-function getAchievementData() {
+const STORAGE_KEY = "learningHubAchievementsV2";
 
-    const defaultData = {
+function loadAchievementData() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+
+        if (
+            saved &&
+            typeof saved.completedQuizzes === "number" &&
+            Array.isArray(saved.unlocked)
+        ) {
+            return {
+                completedQuizzes: saved.completedQuizzes,
+                unlocked: saved.unlocked
+            };
+        }
+    } catch (error) {
+        console.warn("Could not load achievement data:", error);
+    }
+
+    return {
         completedQuizzes: 0,
-        bestPercentage: 0,
         unlocked: []
     };
+}
 
+let achievementData = loadAchievementData();
+
+function saveAchievementData() {
     try {
-
-        const saved = JSON.parse(
-            localStorage.getItem(ACHIEVEMENT_STORAGE_KEY)
-        );
-
-        if (!saved || typeof saved !== "object") {
-            return defaultData;
-        }
-
-        return {
-            completedQuizzes: Math.max(
-                0,
-                Number(saved.completedQuizzes) || 0
-            ),
-
-            bestPercentage: Math.min(
-                100,
-                Math.max(0, Number(saved.bestPercentage) || 0)
-            ),
-
-            unlocked: Array.isArray(saved.unlocked)
-                ? saved.unlocked
-                : []
-        };
-
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(achievementData));
     } catch (error) {
-
-        console.warn("Could not read achievement data.", error);
-
-        return defaultData;
-
+        console.warn("Could not save achievement data:", error);
     }
-
 }
 
 
 /* =========================================
-   15. SAVE ACHIEVEMENT DATA
-========================================= */
-
-function saveAchievementData(data) {
-
-    try {
-
-        localStorage.setItem(
-            ACHIEVEMENT_STORAGE_KEY,
-            JSON.stringify(data)
-        );
-
-        return true;
-
-    } catch (error) {
-
-        console.warn("Could not save achievement data.", error);
-
-        return false;
-
-    }
-
-}
-
-
-/* =========================================
-   16. RECORD COMPLETED QUIZ
-========================================= */
-
-function recordCompletedQuiz(resultPercentage) {
-
-    const data = getAchievementData();
-
-    const previouslyUnlocked = [...data.unlocked];
-
-    data.completedQuizzes++;
-
-    data.bestPercentage = Math.max(
-        data.bestPercentage,
-        resultPercentage
-    );
-
-    const newlyUnlocked = [];
-
-    achievementList.forEach(achievement => {
-
-        const alreadyUnlocked =
-            data.unlocked.includes(achievement.id);
-
-        const qualifies =
-            achievement.check(data);
-
-        if (qualifies && !alreadyUnlocked) {
-
-            data.unlocked.push(achievement.id);
-
-            newlyUnlocked.push(achievement);
-
-        }
-
-    });
-
-    saveAchievementData(data);
-
-    renderAchievements();
-
-    return newlyUnlocked;
-
-}
-
-
-/* =========================================
-   17. DISPLAY ACHIEVEMENTS
+   5. RENDER ACHIEVEMENTS
 ========================================= */
 
 function renderAchievements() {
-
-    if (!achievementGrid || !achievementSummary) return;
-
-    const data = getAchievementData();
-
-    let unlockedCount = 0;
+    if (!achievementGrid) return;
 
     achievementGrid.innerHTML = "";
 
-    achievementList.forEach(achievement => {
+    const unlockedCount = achievementData.unlocked.length;
 
-        const unlocked =
-            data.unlocked.includes(achievement.id) ||
-            achievement.check(data);
+    achievementSummary.textContent = `${unlockedCount} / ${achievements.length}`;
 
-        if (unlocked) {
-            unlockedCount++;
-        }
+    achievementProgressBar.style.width =
+        `${(unlockedCount / achievements.length) * 100}%`;
+
+    achievementProgressText.textContent =
+        `${unlockedCount} of ${achievements.length} ranks unlocked`;
+
+    achievements.forEach(achievement => {
+        const unlocked = achievementData.unlocked.includes(achievement.id);
 
         const card = document.createElement("div");
 
-        card.className = unlocked
-            ? "achievement-card unlocked"
-            : "achievement-card locked";
+        card.className = `achievement-card ${unlocked ? "unlocked" : "locked"}`;
 
-        const icon = document.createElement("div");
+        if (newlyUnlocked.includes(achievement.id)) {
+            card.classList.add("newly-unlocked");
+        }
 
-        icon.className = "achievement-icon";
-        icon.textContent = achievement.icon;
+        const medal = document.createElement("div");
+        medal.className = `badge-medal ${achievement.className}`;
+        medal.textContent = unlocked ? achievement.icon : "🔒";
 
         const title = document.createElement("h3");
-
-        title.textContent = achievement.title;
+        title.textContent = achievement.name;
 
         const description = document.createElement("p");
+        description.textContent = achievement.description;
 
-        description.textContent = unlocked
-            ? "✓ Unlocked!"
-            : achievement.description;
+        const status = document.createElement("span");
+        status.className = "achievement-status";
+        status.textContent = unlocked ? "Unlocked ✓" : "Locked";
 
-        card.appendChild(icon);
-        card.appendChild(title);
-        card.appendChild(description);
-
+        card.append(medal, title, description, status);
         achievementGrid.appendChild(card);
-
     });
-
-    achievementSummary.textContent =
-        `${unlockedCount} of ${achievementList.length} badges unlocked • ` +
-        `${data.completedQuizzes} quizzes completed`;
-
 }
 
 
 /* =========================================
-   18. NEW ACHIEVEMENT NOTICE
+   6. CHECK ACHIEVEMENTS
 ========================================= */
 
-function displayNewAchievementNotice(newlyUnlocked) {
+function checkAchievements() {
+    newlyUnlocked = [];
 
+    achievements.forEach(achievement => {
+        const alreadyUnlocked =
+            achievementData.unlocked.includes(achievement.id);
+
+        if (
+            !alreadyUnlocked &&
+            achievementData.completedQuizzes >= achievement.requirement
+        ) {
+            achievementData.unlocked.push(achievement.id);
+            newlyUnlocked.push(achievement.id);
+        }
+    });
+
+    saveAchievementData();
+    renderAchievements();
+}
+
+
+/* =========================================
+   7. COMPLETE QUIZ
+========================================= */
+
+function recordCompletedQuiz() {
+    achievementData.completedQuizzes++;
+
+    checkAchievements();
+}
+
+function displayNewAchievementNotice() {
     if (!newAchievementNotice) return;
 
-    if (!newlyUnlocked || newlyUnlocked.length === 0) {
-
-        newAchievementNotice.style.display = "none";
+    if (newlyUnlocked.length === 0) {
+        newAchievementNotice.hidden = true;
         newAchievementNotice.textContent = "";
-
         return;
-
     }
 
-    const names = newlyUnlocked.map(achievement => {
-
-        return `${achievement.icon} ${achievement.title}`;
-
+    const names = newlyUnlocked.map(id => {
+        const achievement = achievements.find(item => item.id === id);
+        return achievement ? achievement.name : id;
     });
 
+    newAchievementNotice.hidden = false;
     newAchievementNotice.textContent =
-        "🎉 New achievement unlocked: " + names.join(", ");
-
-    newAchievementNotice.style.display = "block";
-
+        `🎉 New achievement unlocked: ${names.join(", ")}!`;
 }
 
 
 /* =========================================
-   19. RETURN HOME
+   8. PAGE NAVIGATION
 ========================================= */
 
-function returnHome() {
+function showPage(pageToShow) {
+    [landingPage, homePage, quizPage, resultsPage].forEach(page => {
+        if (page) page.hidden = true;
+    });
 
+    if (pageToShow) {
+        pageToShow.hidden = false;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+}
+
+function enterbtn() {
     showPage(homePage);
+    renderAchievements();
+}
 
-    questionSet = [];
+function returnHome() {
+    newlyUnlocked = [];
+    showPage(homePage);
+    renderAchievements();
+}
+
+
+/* =========================================
+   9. POPULATE YEAR AND LEVEL SELECTS
+========================================= */
+
+function populateSelects() {
+    yearSelect.innerHTML = "";
+    levelSelect.innerHTML = "";
+
+    for (let year = 1; year <= 11; year++) {
+        const option = document.createElement("option");
+
+        option.value = `year${year}`;
+        option.textContent = `Year ${year}`;
+
+        yearSelect.appendChild(option);
+    }
+
+    for (let level = 1; level <= 5; level++) {
+        const option = document.createElement("option");
+
+        option.value = `level${level}`;
+        option.textContent = `Level ${level}`;
+
+        levelSelect.appendChild(option);
+    }
+
+    yearSelect.value = "year1";
+    levelSelect.value = "level1";
+}
+
+
+/* =========================================
+   10. GET QUESTIONS
+========================================= */
+
+function getQuestionBank() {
+    if (typeof questions === "undefined") {
+        console.error("questions.js has not loaded.");
+        return [];
+    }
+
+    const subjectData = questions[selectedSubject];
+
+    if (!subjectData) return [];
+
+    const yearData = subjectData[selectedYear];
+
+    if (!yearData) return [];
+
+    const levelData = yearData[selectedLevel];
+
+    return Array.isArray(levelData) ? levelData : [];
+}
+
+
+/* =========================================
+   11. START QUIZ
+========================================= */
+
+function startQuiz() {
+    selectedSubject = subjectSelect.value;
+    selectedYear = yearSelect.value;
+    selectedLevel = levelSelect.value;
+
+    selectedQuestions = getQuestionBank();
+
+    if (selectedQuestions.length === 0) {
+        alert(
+            "No questions were found for this selection. Please check your questions.js file."
+        );
+        return;
+    }
 
     currentQuestion = 0;
     score = 0;
     attempts = 0;
     answered = false;
-    quizResultSaved = false;
+    newlyUnlocked = [];
 
-    nextBtn.disabled = true;
+    const subjectName =
+        subjectSelect.options[subjectSelect.selectedIndex].textContent;
 
-    optionsDiv.innerHTML = "";
+    const yearName =
+        yearSelect.options[yearSelect.selectedIndex].textContent;
 
-    feedback.textContent = "";
-    feedback.className = "";
+    const levelName =
+        levelSelect.options[levelSelect.selectedIndex].textContent;
 
-    if (explanationBox) {
+    quizTitle.textContent = `${subjectName} • ${yearName} • ${levelName}`;
 
-        explanationBox.style.display = "none";
-        explanationBox.textContent = "";
+    scoreText.textContent = score;
 
-    }
-
-    if (progressBar) {
-        progressBar.style.width = "0%";
-    }
-
-    if (progressTrack) {
-        progressTrack.setAttribute("aria-valuenow", "0");
-    }
-
-    renderAchievements();
-
+    showPage(quizPage);
+    displayQuestion();
 }
 
 
 /* =========================================
-   20. RESTART QUIZ
+   12. DISPLAY QUESTION
+========================================= */
+
+function displayQuestion() {
+    const question = selectedQuestions[currentQuestion];
+
+    if (!question) {
+        showResults();
+        return;
+    }
+
+    attempts = 0;
+    answered = false;
+
+    questionText.textContent = question.q;
+
+    optionsContainer.innerHTML = "";
+    feedback.textContent = "";
+    feedback.className = "feedback";
+
+    nextBtn.hidden = true;
+
+    const letters = ["A", "B", "C", "D", "E", "F"];
+
+    question.options.forEach((option, index) => {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "option-btn";
+
+        const letter = document.createElement("span");
+        letter.className = "option-letter";
+        letter.textContent = letters[index] || index + 1;
+
+        const text = document.createElement("span");
+        text.textContent = option;
+
+        button.append(letter, text);
+
+        button.addEventListener("click", () => {
+            checkAnswer(index, button);
+        });
+
+        optionsContainer.appendChild(button);
+    });
+
+    updateProgress();
+}
+
+
+/* =========================================
+   13. UPDATE PROGRESS
+========================================= */
+
+function updateProgress() {
+    const total = selectedQuestions.length;
+
+    progressText.textContent =
+        `Question ${currentQuestion + 1} of ${total}`;
+
+    progressBar.style.width =
+        `${((currentQuestion + 1) / total) * 100}%`;
+}
+
+
+/* =========================================
+   14. CHECK ANSWER
+========================================= */
+
+function checkAnswer(selectedIndex, selectedButton) {
+    if (answered) return;
+
+    const question = selectedQuestions[currentQuestion];
+    const correctAnswer = Number(question.answer);
+
+    attempts++;
+
+    if (selectedIndex === correctAnswer) {
+        answered = true;
+
+        if (attempts === 1) {
+            score++;
+            scoreText.textContent = score;
+        }
+
+        selectedButton.classList.add("correct");
+
+        feedback.className = "feedback correct-feedback";
+
+        feedback.textContent =
+            `✓ Correct! ${question.explanation || "Well done!"}`;
+
+        finishQuestion();
+        return;
+    }
+
+    selectedButton.classList.add("incorrect");
+    selectedButton.disabled = true;
+
+    if (attempts < 2) {
+        feedback.className = "feedback wrong-feedback";
+        feedback.textContent =
+            "Not quite! Try one more time.";
+    } else {
+        answered = true;
+
+        const buttons = optionsContainer.querySelectorAll(".option-btn");
+
+        if (buttons[correctAnswer]) {
+            buttons[correctAnswer].classList.add("correct");
+        }
+
+        feedback.className = "feedback wrong-feedback";
+
+        feedback.textContent =
+            `The correct answer was ${question.options[correctAnswer]}. ${question.explanation || ""}`;
+
+        finishQuestion();
+    }
+}
+
+
+/* =========================================
+   15. FINISH QUESTION
+========================================= */
+
+function finishQuestion() {
+    const buttons = optionsContainer.querySelectorAll(".option-btn");
+
+    buttons.forEach(button => {
+        button.disabled = true;
+    });
+
+    nextBtn.hidden = false;
+
+    if (currentQuestion === selectedQuestions.length - 1) {
+        nextBtn.textContent = "See My Results 🏆";
+    } else {
+        nextBtn.textContent = "Next Question →";
+    }
+}
+
+
+/* =========================================
+   16. NEXT QUESTION
+========================================= */
+
+function nextQuestion() {
+    if (!answered) return;
+
+    currentQuestion++;
+
+    if (currentQuestion >= selectedQuestions.length) {
+        showResults();
+    } else {
+        displayQuestion();
+    }
+}
+
+
+/* =========================================
+   17. SHOW RESULTS
+========================================= */
+
+function showResults() {
+    const total = selectedQuestions.length;
+
+    const percentageScore =
+        Math.round((score / total) * 100);
+
+    finalScore.textContent = `${score} / ${total}`;
+    percentage.textContent = `${percentageScore}%`;
+
+    if (percentageScore === 100) {
+        resultMessage.textContent = "Perfect Score! 🌟";
+        resultDescription.textContent =
+            "Amazing work! You answered every question correctly.";
+    } else if (percentageScore >= 80) {
+        resultMessage.textContent = "Excellent Work! 🎉";
+        resultDescription.textContent =
+            "You have a brilliant understanding of this topic.";
+    } else if (percentageScore >= 60) {
+        resultMessage.textContent = "Good Job! 👏";
+        resultDescription.textContent =
+            "You're making great progress. Keep practising!";
+    } else if (percentageScore >= 40) {
+        resultMessage.textContent = "Keep Going! 💪";
+        resultDescription.textContent =
+            "Every quiz is a chance to learn something new.";
+    } else {
+        resultMessage.textContent = "Keep Learning! 📚";
+        resultDescription.textContent =
+            "Don't give up. Practise again and improve your score.";
+    }
+
+    recordCompletedQuiz();
+    displayNewAchievementNotice();
+
+    showPage(resultsPage);
+}
+
+
+/* =========================================
+   18. RESTART QUIZ
 ========================================= */
 
 function restartQuiz() {
-
     startQuiz();
-
 }
 
 
 /* =========================================
-   21. BUTTON EVENTS
+   19. BUTTON EVENTS
 ========================================= */
+
+if (enterBtn) {
+    enterBtn.addEventListener("click", enterbtn);
+}
 
 if (startBtn) {
     startBtn.addEventListener("click", startQuiz);
@@ -854,46 +637,13 @@ if (resultsHomeBtn) {
 
 
 /* =========================================
-   22. KEYBOARD SUPPORT
+   20. START APPLICATION
 ========================================= */
 
-document.addEventListener("keydown", function(event) {
-
-    if (!quizPage || quizPage.style.display !== "block") {
-        return;
-    }
-
-    if (
-        event.key === "Enter" &&
-        nextBtn &&
-        !nextBtn.disabled &&
-        answered
-    ) {
-
-        nextQuestion();
-
-    }
-
-});
-
-
-/* =========================================
-   23. QUIZ READY
-========================================= */
-
+populateSelects();
 renderAchievements();
+showPage(landingPage);
 
-console.log("School Quiz Learning Hub is ready!");
-
-if (typeof questions !== "undefined") {
-
-    console.log("Subjects:", Object.keys(questions));
-
-} else {
-
-    console.error("Question database was not found.");
-
-}
-
-console.log("Achievements system loaded.");
-console.log("Two attempts per question enabled.");
+console.log("School Quiz Learning Hub loaded!");
+console.log("Achievement ranks:", achievements.length);
+console.log("Question database:", typeof questions !== "undefined" ? "Loaded" : "Not found");
